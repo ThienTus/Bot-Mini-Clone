@@ -1,0 +1,293 @@
+# OptiSigns – OptiBot Mini-Clone Take-Home Test
+
+This repository implements a mini clone of OptiSigns OptiBot, following the take-home test instructions.
+
+---
+
+## Overview
+
+The project consists of three main parts:
+
+1. Scrape & normalize OptiSigns support articles
+2. Build Assistant & Programmatically Load Vector Store
+3. Deploy Scraper as Daily Job
+
+---
+
+## Task 1 – Scrape → Markdown
+
+### Goal
+
+Scrape support articles from 'support.optisigns.com' and normalize them into clean Markdown files.
+
+### What was done
+
+- Scraped **30+ articles** from OptiSigns support site using Zendesk API
+- Extracted article title, body, URL, and last updated time
+- Converted HTML content into Markdown:
+  - Preserved headings, lists, links, and code blocks
+  - Removed navigation elements and UI noise
+- Each article is saved as a standalone Markdown file
+
+The following are the steps to perform the above tasks:
+Step 1: Create folder Scraper
+Step 2: Create Scraper\main.py
+        Scraper\zendesk.py
+        Scraper\markdown.py
+        Scraper\clean_markdown.py
+Step 3: Install python lib
+Create requirements.txt
+Write these libraries to a requirements.txt file:
+requests
+beautifulsoup4
+markdownify
+pip install -r requirements.txt
+Step 4: FETCH ≥ 30 ARTICLES (Zendesk API)
+See the zendesk.py file
+Step 5: HTML → CLEAN_MARKDOWN → MARKDOWN (CLEAN)
+See the clean_markdown.py and markdown.py
+Step 6: Save File
+See the main.py
+Step 7: python main.py
+
+### Output
+
+scraper/output/articles/
+├── what-is-optisigns.md
+├── how-to-add-youtube-video.md
+├── add-device.md
+└── (≥ 30 files)
+
+#Log
+PS D:\OptiSigns\scraper> python main.py 
+Saved: how-to-use-the-optidev-app 
+Saved: optikiosk-50-setup-and-troubleshooting-guide 
+Saved: how-to-set-up-an-outlook-calendar-app-with-shared-permissions 
+Saved: using-an-enterprise-network-802-1x-with-optisigns 
+Saved: chrome-app-end-of-support-on-chromeos-and-workarounds 
+Saved: user-management-example-chain-restaurant-or-retail-store-with-multiple-locations 
+Saved: getting-started-with-designer 
+Saved: designer-2-0-new-features 
+Saved: optisigns-pro-promax-player-troubleshooting-guide 
+Saved: how-to-play-licensed-background-music-on-digital-signs-with-optisound 
+Saved: disk-encryption 
+Saved: optistick-troubleshooting-guide 
+Saved: fixing-unexpected-screen-rotation-incorrect-orientation-with-optisigns-android-stick 
+Saved: how-to-use-the-tableau-app 
+Saved: handle-oauth-authentication-using-api-gateway-pre-request-configuration 
+Saved: optisigns-promax-player 
+Saved: tagging-in-optisigns 
+Saved: getting-started-with-an-optisigns-free-trial 
+Saved: how-to-use-optisigns-with-microsoft-teams-rooms 
+Saved: how-to-access-the-troubleshooting-page-of-the-optisigns-player 
+Saved: how-to-using-sepa-and-ideal-for-eur-currency-subscription-payments 
+Saved: how-to-install-a-root-certificate-and-display-an-internal-website-on-screens 
+Saved: accepted-payment-methods 
+Saved: what-do-i-get-with-an-optisigns-free-plan 
+Saved: making-a-video-wall-with-optisigns-video-wall-app 
+Saved: how-to-set-up-a-powerbi-service-principal-for-use-in-optisigns 
+Saved: display-salesforce-dashboards-with-mfa-using-web-scripting 
+Saved: how-to-order-a-preconfigured-optisigns-android-player-device 
+Saved: integrating-point-of-sale-pos-systems-to-build-digital-menu-boards-with-optisync 
+Saved: configuring-mass-deployment-with-jamf-pro-mdm-on-apple-devices
+
+### Notes
+
+- Scraping is fully automated
+- The process can be re-run without manual intervention
+
+---
+
+## Task 2 – Build Assistant & Load Vector Store
+
+### Goal
+
+Create an OpenAI Assistant and load knowledge documents programmatically into a Vector Store.
+
+### Assistant
+
+- Assistant is created using **OpenAI Playground UI**
+- System prompt (verbatim):
+  You are OptiBot, the customer-support bot for OptiSigns.com.
+  • Tone: helpful, factual, concise.
+  • Only answer using the uploaded docs.
+  • Max 5 bullet points; else link to the doc.
+  • Cite up to 3 "Article URL:" lines per reply.
+
+### Vector Store Ingestion
+
+- All Markdown files are uploaded via **OpenAI API (Python)**
+- No files are uploaded via UI
+- A Vector Store is created and populated programmatically
+
+### Chunking Strategy
+
+The following are the steps to perform the above tasks:
+Step 1: Create scraper/upload_to_openai.py
+Step 2:Create ASSISTANT
+2.1.OpenAI Playground
+    Choose Assistants
+    Create new Assistant
+2.2. Paste SYSTEM PROMPT
+You are OptiBot, the customer-support bot for OptiSigns.com.
+Tone: helpful, factual, concise.
+Only answer using the uploaded docs.
+Max 5 bullet points; else link to the doc.
+Cite up to 3 "Article URL:" lines per reply.
+2.3. Configuration
+Model: gpt-4.1-mini
+Tools: File Search(ON)
+F5 page (To save)
+Copy assistant_id
+Step 3: Chunking Strategy
+Chunk size: 500–800 tokens
+Split by:
+Heading (#, ##, ###)
+Overlap: 50 tokens
+1 article → many chunks
+Step 4: SCRIPT PYTHON UPLOAD
+pip install openai tiktoken
+See code in a upload_to_openai.py file
+
+    4.1. Set ENV in power shell -> $env:OPENAI_API_KEY="sk-xxxx" -> Check ENV -> echo $env:OPENAI_API_KEY
+    4.2. Run script -> python upload_to_openai.py
+    4.3. Expected log:
+    VECTOR_STORE_ID: vs_xxx
+    Files embedded: 30
+    Chunks embedded: 30
+    Vector store attached to assistant
+
+Step 5: SANITY CHECK
+Playground → Assistants
+Choose OptiBot
+Ask: “How do I add a YouTube video?”
+Output:
+"The chat feature on Playground requires payment, so I can't chat with Optibot, but I have set up the assistant and the vector store attachment has been verified."
+\OptiSigns\Screenshots\File_Search_ON.png
+\OptiSigns\Screenshots\Chat_With_Optibot.png
+
+### Log
+
+PS D:\OptiSigns\scraper> python upload_to_openai.py
+VECTOR_STORE_ID: vs_xxx
+Files embedded: 30
+Chunks embedded: 30
+Vector store attached to assistant
+
+PS D:\OptiSigns\scraper> python main.py
+[2026-01-04T05:06:17.219392] === Daily scrape job started ===
+[2026-01-04T05:06:19.022050] Added: how-to-use-the-optidev-app
+[2026-01-04T05:06:19.036757] Added: optikiosk-50-setup-and-troubleshooting-guide
+[2026-01-04T05:06:19.041696] Added: how-to-set-up-an-outlook-calendar-app-with-shared-permissions
+[2026-01-04T05:06:19.047530] Added: using-an-enterprise-network-802-1x-with-optisigns
+[2026-01-04T05:06:19.054337] Added: chrome-app-end-of-support-on-chromeos-and-workarounds
+[2026-01-04T05:06:19.068526] Added: user-management-example-chain-restaurant-or-retail-store-with-multiple-locations
+[2026-01-04T05:06:19.095340] Added: getting-started-with-designer
+[2026-01-04T05:06:19.112444] Added: designer-2-0-new-features
+[2026-01-04T05:06:19.128123] Added: optisigns-pro-promax-player-troubleshooting-guide
+[2026-01-04T05:06:19.135408] Added: how-to-play-licensed-background-music-on-digital-signs-with-optisound
+[2026-01-04T05:06:19.141441] Added: disk-encryption
+[2026-01-04T05:06:19.160849] Added: optistick-troubleshooting-guide
+[2026-01-04T05:06:19.164308] Added: fixing-unexpected-screen-rotation-incorrect-orientation-with-optisigns-android-stick
+[2026-01-04T05:06:19.176556] Added: how-to-use-the-tableau-app
+[2026-01-04T05:06:19.261825] Added: how-to-install-a-root-certificate-and-display-an-internal-website-on-screens
+[2026-01-04T05:06:19.261825] Added: how-to-install-a-root-certificate-and-display-an-internal-website-on-screens[2026-01-04T05:06:19.261825] Added: how-to-install-a-root-certificate-and-display-an-internal-website-on-screens
+[2026-01-04T05:06:19.265760] Added: accepted-payment-methods
+[2026-01-04T05:06:19.276727] Added: what-do-i-get-with-an-optisigns-free-plan
+[2026-01-04T05:06:19.294730] Added: making-a-video-wall-with-optisigns-video-wall-app
+[2026-01-04T05:06:19.302731] Added: how-to-set-up-a-powerbi-service-principal-f[2026-01-04T05:06:19.294730] Added: making-a-video-wall-with-optisigns-video-wall-app
+[2026-01-04T05:06:19.302731] Added: how-to-set-up-a-powerbi-service-principal-for-use-in-optisigns
+[2026-01-04T05:06:19.308686] Added: display-salesforce-dashboards-with-mfa-using-web-scripting
+[2026-01-04T05:06:19.339439] Added: configuring-mass-deployment-with-jamf-pro-mdm-on-apple-devices 
+[2026-01-04T05:06:42.980893] Job finished | added=30, updated=0, skipped=0, uploaded=30
+[2026-01-04T05:06:42.981247] === Exit 0 ===
+
+PS D:\OptiSigns\scraper> python main.py
+[2026-01-04T07:32:55.285707] === Daily scrape job started ===
+[2026-01-04T07:32:56.918103] Job finished | added=0, updated=0, skipped=30, uploaded=0
+[2026-01-04T07:32:56.918603] === Exit 0 ===
+
+---
+
+## Task 3 – Deploy Scraper as Daily Job
+
+### Goal
+
+Run the scraper and uploader automatically once per day.
+
+### Implementation
+
+- Scraper and uploader logic is wrapped into 'main.py'
+- The job:
+  - Re-scrapes all articles
+  - Detects new or updated content using hash / last-modified
+  - Uploads only the delta to the Vector Store
+
+Step 1: Create init_vector_store -> getID vector store
+Step 2: .env -> Write ID vector store and assistant.
+Step 3: Update code main.py and upload_to_openai.py
+Step 4: Run file main.py and upload_to_openai.py (python main.py | python upload_to_openai.py)
+Step 5: Build Docker
+5.1.docker build -t optibot-daily-job .
+5.2.docker run --rm `        
+    -e OPENAI_API_KEY=sk-xxx`
+    -e ASSISTANT_ID=asst_xxx `        
+    -e VECTOR_STORE_ID=vs_xxx`  
+    optibot-daily-job
+
+### Docker
+
+- The project is containerized using Docker
+- The container runs once and exits with status code 0
+
+docker build -t optibot-daily-job .
+
+### Scheduling
+
+- Deployed as a daily job on **DigitalOcean App Platform**
+- Scheduled to run once per day
+
+### Logging
+
+Each run logs:
+VECTOR_STORE_ID: vs_xxx
+[2026-01-04T07:38:55.388665] === Daily scrape job started ===
+[2026-01-04T07:38:56.054186] Added: how-to-use-the-optidev-app
+[2026-01-04T07:38:56.067684] Added: optikiosk-50-setup-and-troubleshooting-guide
+[2026-01-04T07:38:56.071446] Added: how-to-set-up-an-outlook-calendar-app-with-shared-permissions
+[2026-01-04T07:38:56.076314] Added: using-an-enterprise-network-802-1x-with-optisigns  
+[2026-01-04T07:38:56.082545] Added: chrome-app-end-of-support-on-chromeos-and-workarounds
+[2026-01-04T07:38:56.096163] Added: user-management-example-chain-restaurant-or-retail-store-with-multiple-locations
+[2026-01-04T07:38:56.118838] Added: getting-started-with-designer
+[2026-01-04T07:38:56.133420] Added: designer-2-0-new-features
+[2026-01-04T07:38:56.145234] Added: optisigns-pro-promax-player-troubleshooting-guide  
+[2026-01-04T07:38:56.151067] Added: how-to-play-licensed-background-music-on-digital-signs-with-optisound
+[2026-01-04T07:38:56.154702] Added: disk-encryption
+[2026-01-04T07:38:56.173708] Added: optistick-troubleshooting-guide
+[2026-01-04T07:38:56.176032] Added: fixing-unexpected-screen-rotation-incorrect-orientation-with-optisigns-android-stick
+[2026-01-04T07:38:56.186395] Added: how-to-use-the-tableau-app
+[2026-01-04T07:38:56.189446] Added: handle-oauth-authentication-using-api-gateway-pre-request-configuration
+[2026-01-04T07:38:56.203618] Added: optisigns-promax-player
+[2026-01-04T07:38:56.213167] Added: tagging-in-optisigns
+[2026-01-04T07:38:56.218759] Added: getting-started-with-an-optisigns-free-trial
+[2026-01-04T07:38:56.224479] Added: how-to-use-optisigns-with-microsoft-teams-rooms  
+[2026-01-04T07:38:56.230847] Added: how-to-access-the-troubleshooting-page-of-the-optisigns-player
+[2026-01-04T07:38:56.233550] Added: how-to-using-sepa-and-ideal-for-eur-currency-subscription-payments
+[2026-01-04T07:38:56.249192] Added: how-to-install-a-root-certificate-and-display-an-internal-website-on-screens
+[2026-01-04T07:38:56.252633] Added: accepted-payment-methods
+[2026-01-04T07:38:56.259039] Added: what-do-i-get-with-an-optisigns-free-plan
+[2026-01-04T07:38:56.275059] Added: making-a-video-wall-with-optisigns-video-wall-app  
+[2026-01-04T07:38:56.281701] Added: how-to-set-up-a-powerbi-service-principal-for-use-in-optisigns
+[2026-01-04T07:38:56.285596] Added: display-salesforce-dashboards-with-mfa-using-web-scripting
+[2026-01-04T07:38:56.288967] Added: how-to-order-a-preconfigured-optisigns-android-player-device
+[2026-01-04T07:38:56.301874] Added: integrating-point-of-sale-pos-systems-to-build-digital-menu-boards-with-optisync
+[2026-01-04T07:38:56.305473] Added: configuring-mass-deployment-with-jamf-pro-mdm-on-apple-devices
+[2026-01-04T07:39:32.719213] Job finished | added=30, updated=0, skipped=0, uploaded=30  
+[2026-01-04T07:39:32.732199] === Exit 0 ===
+
+### Job Logs
+
+- Daily job logs available at:
+  - (paste DigitalOcean job log URL here)
+
+---
