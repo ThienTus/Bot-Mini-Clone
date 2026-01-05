@@ -242,6 +242,12 @@ Step 5: Build Docker
 
 docker build -t optibot-daily-job .
 
+docker run --rm `        
+    -e OPENAI_API_KEY=sk-xxx`
+    -e ASSISTANT_ID=asst_xxx `        
+    -e VECTOR_STORE_ID=vs_xxx`  
+    optibot-daily-job
+
 ### Scheduling
 
 - Deployed as a daily job on **DigitalOcean App Platform**
@@ -288,6 +294,13 @@ VECTOR_STORE_ID: vs_xxx
 ### Job Logs
 
 - Daily job logs available at:
-  - (paste DigitalOcean job log URL here)
+  - (https://cloud.digitalocean.com/apps/new?i=99292b)
 
+Since the DigitalOcean Platform is a paid platform, I can't create a complete guide. However, here are some steps:
+Step 1: Access DigitalOcean Platform
+Step 2: Log in to your account
+Step 3: Create New App
+Step 4: Choose App Platform
+Step 5: Attach the GitHub link to your project
+Step 6: Configure Environment Variables -> Screenshots\DigitalOcean_Platform.png
 ---

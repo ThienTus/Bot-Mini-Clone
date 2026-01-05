@@ -21,8 +21,7 @@ This project implements a production-ready daily ingestion pipeline for OptiSign
 1. **Clone the repository**:
 
    ```sh
-   git clone https://github.com/MinhTamNT/image-search-embedding.git
-   cd image-search-embedding
+   git clone https://github.com/ThienTus/Bot-Mini-Clone.git
    ```
 
 2. **Create a virtual environment and activate it**:
@@ -45,30 +44,45 @@ This project implements a production-ready daily ingestion pipeline for OptiSign
    python main.py
    ```
 
-2. **Search for similar images**:
+2. **Run Docker**:
 
-   - Using an image file:
-     ```sh
-     curl -X POST -F "file=@path_to_your_image.jpg" http://127.0.0.1:5000/search
-     ```
-   - Using tags:
-     ```sh
-     curl -X POST -F "tags=tag1" -F "tags=tag2" http://127.0.0.1:5000/search
-     ```
-
-3. **Retrieve tags with pagination**:
    ```sh
-   curl -X GET "http://127.0.0.1:5000/tags?page=1&per_page=10"
+   docker build -t optibot-daily-job .
+
+   docker run --rm `
+       -e OPENAI_API_KEY=sk-xxx`
+       -e ASSISTANT_ID=asst_xxx `
+       -e VECTOR_STORE_ID=vs_xxx`
+       optibot-daily-job
    ```
 
 ## Project Structure
 
 - `main.py`: The main Flask application file.
-- `Service/image_service.py`: Contains functions for image processing and embedding extraction.
-- `dao/dao.py`: Contains functions for database operations.
-- `model.py`: Defines the database models.
-- `setup_database.py`: Script for setting up the database.
-- `store_vector.py`: Script for computing and storing image embeddings.
+- `clean_markdown.py`: Convert each article to clean Markdown.
+- `markdown.py`: Markdown ≥ 30 articles from support.optisigns.com.
+- `init_vector_store.py`: Create ID vector store.
+- `upload_to_openai.py`: Upload Markdown files to OpenAI Vector Store files via OpenAI API.
+- `zendesk.py`: Zendesk API to read the article.
+
+## Deployment (Daily Job)
+
+The scraper and uploader are packaged as a Dockerized worker job.
+
+- The job re-scrapes OptiSigns support articles daily
+- Detects new or updated articles via content hash
+- Uploads only deltas to the OpenAI Vector Store
+- Logs added, updated, and skipped article counts
+
+Daily Job Logs:
+
+- Last run log (Docker): log/daily_job.log
+- Log includes: added / updated / skipped counts
+
+## DigitalOcean Platform
+
+This worker is designed to be triggered daily.
+In production, it can be scheduled via DigitalOcean App Platform jobs or external cron trigger.
 
 ## Contributing
 
@@ -77,7 +91,3 @@ Contributions are welcome! Please follow these steps:
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Submit a pull request with a detailed description of your changes.
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
